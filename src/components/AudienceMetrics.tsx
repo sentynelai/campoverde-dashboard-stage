@@ -10,12 +10,11 @@ export const AudienceMetrics: React.FC = () => {
 
   if (!selectedStore) return null;
 
-  const socialReach = Object.values(selectedStore.socialMedia).reduce((a, b) => a + b, 0);
   const metrics = {
-    sales: selectedStore.sales,
-    customers: selectedStore.customers,
-    socialReach,
-    trend: selectedStore.trend
+    sales: selectedStore.sales || 0,
+    customers: selectedStore.customers || 0,
+    digitalAudience: selectedStore.digitalAudience || 0,
+    trend: selectedStore.trend || 0
   };
 
   return (
@@ -37,13 +36,33 @@ export const AudienceMetrics: React.FC = () => {
       
       <div className="space-y-3">
         {[
-          { label: 'Sales', value: `$${(metrics.sales / 1000000).toFixed(1)}M`, icon: Users, color: '[#00FF9C]' },
-          { label: 'Customers', value: `${(metrics.customers / 1000).toFixed(1)}K`, icon: Radio, color: 'blue-500' },
-          { label: 'Growth', value: `${metrics.trend >= 0 ? '+' : ''}${metrics.trend}%`, icon: TrendingUp, color: metrics.trend >= 0 ? '[#00FF9C]' : 'red-400' },
-          { label: 'Social', value: `${(metrics.socialReach / 1000).toFixed(1)}K`, icon: ArrowRight, color: 'orange-500' }
+          { 
+            label: 'Sales', 
+            value: `$${(metrics.sales / 1000000).toFixed(1)}M`, 
+            icon: Users, 
+            color: '[#00FF9C]' 
+          },
+          { 
+            label: 'Customers', 
+            value: `${(metrics.customers / 1000).toFixed(1)}K`, 
+            icon: Radio, 
+            color: 'blue-500' 
+          },
+          { 
+            label: 'Growth', 
+            value: `${metrics.trend >= 0 ? '+' : ''}${metrics.trend}%`, 
+            icon: TrendingUp, 
+            color: metrics.trend >= 0 ? '[#00FF9C]' : 'red-400' 
+          },
+          { 
+            label: 'Digital', 
+            value: `${(metrics.digitalAudience / 1000).toFixed(1)}K`, 
+            icon: ArrowRight, 
+            color: 'orange-500' 
+          }
         ].map((item, index) => (
           <motion.div
-            key={item.label}
+            key={`${selectedStore.id}-${item.label}`}
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: index * 0.1 }}

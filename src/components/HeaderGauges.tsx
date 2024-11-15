@@ -10,11 +10,18 @@ export const HeaderGauges: React.FC = () => {
 
   const calculateMetrics = () => {
     const storeList = selectedStore ? stores : allStores;
-    const totalSales = storeList.reduce((acc, store) => acc + store.sales, 0);
-    const avgTrend = storeList.reduce((acc, store) => acc + store.trend, 0) / storeList.length;
-    const totalSocial = storeList.reduce((acc, store) => 
-      acc + Object.values(store.socialMedia).reduce((a, b) => a + b, 0), 0
-    );
+    
+    if (!storeList || storeList.length === 0) {
+      return {
+        sales: 0,
+        trend: 0,
+        social: 0
+      };
+    }
+
+    const totalSales = storeList.reduce((acc, store) => acc + (store.sales || 0), 0);
+    const avgTrend = storeList.reduce((acc, store) => acc + (store.trend || 0), 0) / storeList.length;
+    const totalSocial = storeList.reduce((acc, store) => acc + (store.digitalAudience || 0), 0);
 
     return {
       sales: totalSales,
@@ -30,8 +37,8 @@ export const HeaderGauges: React.FC = () => {
       label: 'Sales',
       value: `$${(metrics.sales / 1000000).toFixed(1)}M`,
       icon: DollarSign,
-      gauge: selectedStore ? 
-        (selectedStore.sales / Math.max(...allStores.map(s => s.sales))) * 100 : 100
+      gauge: selectedStore && allStores.length > 0 ? 
+        ((selectedStore.sales || 0) / Math.max(...allStores.map(s => s.sales || 0))) * 100 : 100
     },
     {
       label: 'Velocity',
@@ -41,14 +48,11 @@ export const HeaderGauges: React.FC = () => {
         ((selectedStore.trend + 20) / 40) * 100 : 85
     },
     {
-      label: 'Social',
-      value: `${(metrics.social / 1000000).toFixed(1)}M`,
+      label: 'Digital',
+      value: `${(metrics.social / 1000).toFixed(1)}K`,
       icon: Share2,
-      gauge: selectedStore ? 
-        (Object.values(selectedStore.socialMedia).reduce((a, b) => a + b, 0) / 
-        Math.max(...allStores.map(s => 
-          Object.values(s.socialMedia).reduce((a, b) => a + b, 0)
-        ))) * 100 : 92
+      gauge: selectedStore && allStores.length > 0 ? 
+        ((selectedStore.digitalAudience || 0) / Math.max(...allStores.map(s => s.digitalAudience || 0))) * 100 : 92
     }
   ];
 
@@ -80,8 +84,7 @@ export const HeaderGauges: React.FC = () => {
                 strokeWidth="4"
                 fill="none"
                 strokeDasharray={`${2 * Math.PI * 45}`}
-                initial={{ strokeDashoffset: 2 * Math.PI * 45 }}
-                animate={{ strokeDashoffset: 2 * Math.PI * 45 * (1 - gauge.gauge / 100) }}
+                animate={{ strokeDashoffset: 2 * Math.PI * 45 * (1 - (gauge.gauge || 0) / 100) }}
                 transition={{ duration: 1, ease: "easeOut" }}
               />
             </svg>

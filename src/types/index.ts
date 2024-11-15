@@ -5,24 +5,23 @@ export interface SocialMedia {
   tiktok: number;
 }
 
-export interface Products {
-  energize: number;
-  wellness: number;
-  boost: number;
-  bliss: number;
-}
-
 export interface StoreData {
   id: number;
   name: string;
-  lat: number;
-  lng: number;
+  latitude: number;
+  longitude: number;
   sales: number;
   customers: number;
   region: string;
   trend: number;
-  socialMedia: SocialMedia;
-  products: Products;
+  digitalAudience: number;
+}
+
+export interface ProductKPI {
+  id: string;
+  name: string;
+  current: number;
+  target: number;
 }
 
 export interface ChatMessage {

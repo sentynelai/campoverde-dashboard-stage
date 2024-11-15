@@ -47,7 +47,7 @@ export const Map: React.FC = () => {
             const isSelected = selectedStore?.id === store.id;
 
             const marker = new google.maps.Marker({
-              position: { lat: store.lat, lng: store.lng },
+              position: { lat: store.latitude, lng: store.longitude },
               map,
               icon: {
                 path: google.maps.SymbolPath.CIRCLE,
@@ -81,7 +81,7 @@ export const Map: React.FC = () => {
 
             marker.addListener('click', () => {
               setSelectedStore(store);
-              map.panTo({ lat: store.lat, lng: store.lng });
+              map.panTo({ lat: store.latitude, lng: store.longitude });
               map.setZoom(6);
             });
 

@@ -1,20 +1,27 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Logo } from './Logo';
 import { HeaderGauges } from './HeaderGauges';
 import { Users, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AudienceMap } from './AudienceMap';
 import { useStoreData } from '../hooks/useStoreData';
+import { LoadingTooltip } from './LoadingTooltip';
+import { ErrorModal } from './ErrorModal';
 
 export const Header: React.FC = () => {
-  const [showAudienceMap, setShowAudienceMap] = useState(false);
-  const { refreshData, lastUpdate, isLoading } = useStoreData();
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showAudienceMap, setShowAudienceMap] = React.useState(false);
+  const { 
+    refreshData, 
+    lastUpdate, 
+    isLoading, 
+    isRefreshing,
+    errorMessage,
+    showErrorModal,
+    setShowErrorModal
+  } = useStoreData();
 
   const handleRefresh = async () => {
-    setIsRefreshing(true);
     await refreshData();
-    setIsRefreshing(false);
   };
 
   return (
@@ -25,12 +32,15 @@ export const Header: React.FC = () => {
           
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-sm text-dark-400">
-              <span>Last update: {lastUpdate.toLocaleTimeString()}</span>
+              <div className="group flex items-center gap-2">
+                <span>Last update: {lastUpdate.toLocaleTimeString()}</span>
+                {(isLoading || isRefreshing) && <LoadingTooltip />}
+              </div>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleRefresh}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-dark-800/50 hover:bg-dark-800 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-dark-800/50 hover:bg-dark-800 transition-colors disabled:opacity-50"
                 disabled={isRefreshing || isLoading}
               >
                 <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -63,6 +73,12 @@ export const Header: React.FC = () => {
           </>
         )}
       </AnimatePresence>
+
+      <ErrorModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        error={errorMessage || 'An unknown error occurred'}
+      />
     </>
   );
-}
+};

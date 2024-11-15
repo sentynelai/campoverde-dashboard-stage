@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
-import { Building2, Package, TrendingUp } from 'lucide-react';
+import { Building2, Package, Share2 } from 'lucide-react';
 import { useStoreData } from '../hooks/useStoreData';
-import { useStoreSelection } from '../hooks/useStoreSelection';
+import { useProductKPIs } from '../hooks/useProductKPIs';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Create a custom chart component using SVG for better control and stability
 const TrendChart: React.FC<{ data: { reach: number; goal: number }[] }> = ({ data }) => {
+  if (!data || data.length === 0) return null;
+  
   const maxValue = Math.max(...data.map(d => Math.max(d.reach, d.goal)));
   const points = data.map((d, i) => ({
     x: (i / (data.length - 1)) * 100,
@@ -18,7 +19,6 @@ const TrendChart: React.FC<{ data: { reach: number; goal: number }[] }> = ({ dat
 
   return (
     <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-      {/* Goal line (dashed) */}
       <polyline
         points={goalLine}
         fill="none"
@@ -27,8 +27,6 @@ const TrendChart: React.FC<{ data: { reach: number; goal: number }[] }> = ({ dat
         strokeDasharray="2,2"
         vectorEffect="non-scaling-stroke"
       />
-      
-      {/* Reach line */}
       <polyline
         points={reachLine}
         fill="none"
@@ -42,10 +40,10 @@ const TrendChart: React.FC<{ data: { reach: number; goal: number }[] }> = ({ dat
 
 export const SocialFooter: React.FC = () => {
   const { stores } = useStoreData();
-  const { selectedStore } = useStoreSelection();
-
+  const { products } = useProductKPIs();
+  
   const totalLocations = stores.length;
-  const totalProducts = 4; // Fixed as per requirement
+  const totalProducts = products.length;
   
   const audienceData = useMemo(() => 
     Array.from({ length: 12 }, (_, i) => ({
@@ -65,13 +63,13 @@ export const SocialFooter: React.FC = () => {
     { 
       icon: Package,
       label: 'Products Tracked',
-      value: totalProducts,
+      value: totalProducts.toLocaleString(),
       color: '#00FF9C'
     },
     {
-      icon: TrendingUp,
+      icon: Share2,
       label: 'Audience Reach',
-      value: `${((audienceData[audienceData.length - 1].reach / audienceData[audienceData.length - 1].goal) * 100).toFixed(1)}%`,
+      value: `${((audienceData[audienceData.length - 1]?.reach || 0) / (audienceData[audienceData.length - 1]?.goal || 1) * 100).toFixed(1)}%`,
       color: '#00FF9C'
     }
   ];
@@ -113,4 +111,4 @@ export const SocialFooter: React.FC = () => {
       </div>
     </div>
   );
-}
+};
