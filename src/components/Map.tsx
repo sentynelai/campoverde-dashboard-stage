@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useStoreSelection } from '../hooks/useStoreSelection';
 import { useStoreData } from '../hooks/useStoreData';
 import { MapError } from './MapError';
@@ -12,6 +12,7 @@ export const Map: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
+  const [markerData, setMarkerData] = useState<{ [key: number]: google.maps.Marker }>({});
   const [error, setError] = useState<string>('');
   const { stores } = useStoreData();
   const { selectedStore, setSelectedStore } = useStoreSelection();
@@ -19,7 +20,15 @@ export const Map: React.FC = () => {
   const batchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const createMarker = (store: any, map: google.maps.Map) => {
+  // Memoize marker creation to avoid recreating markers unnecessarily
+  const createMarker = useMemo(() => (store: any, map: google.maps.Map) => {
+    // Check if marker already exists
+    if (markerData[store.id]) {
+      const existingMarker = markerData[store.id];
+      existingMarker.setMap(map);
+      return existingMarker;
+    }
+
     const isEastRegion = store.region === 'East';
     const isSelected = selectedStore?.id === store.id;
 
@@ -61,7 +70,6 @@ export const Map: React.FC = () => {
     });
 
     marker.addListener('click', () => {
-      // Debounce marker clicks
       if (clickTimeoutRef.current) {
         clearTimeout(clickTimeoutRef.current);
       }
@@ -73,8 +81,10 @@ export const Map: React.FC = () => {
       }, 100);
     });
 
+    // Store marker reference
+    setMarkerData(prev => ({ ...prev, [store.id]: marker }));
     return marker;
-  };
+  }, [selectedStore, setSelectedStore, markerData]);
 
   const loadMarkerBatch = (
     visibleStores: typeof stores,
@@ -115,9 +125,8 @@ export const Map: React.FC = () => {
         return isVisible;
       });
 
-      // Clear existing markers
-      markersRef.current.forEach(marker => marker.setMap(null));
-      markersRef.current = [];
+      // Hide all markers first
+      Object.values(markerData).forEach(marker => marker.setMap(null));
 
       // Clear any pending batch loading
       if (batchTimeoutRef.current) {
@@ -127,9 +136,8 @@ export const Map: React.FC = () => {
       // Start loading markers in batches
       loadMarkerBatch(visibleStores, 0, mapInstanceRef.current);
     } else {
-      // Clear markers if zoom level is too low
-      markersRef.current.forEach(marker => marker.setMap(null));
-      markersRef.current = [];
+      // Hide all markers if zoom level is too low
+      Object.values(markerData).forEach(marker => marker.setMap(null));
     }
 
     setVisibleMarkers(newVisibleMarkers);
@@ -189,7 +197,8 @@ export const Map: React.FC = () => {
       if (clickTimeoutRef.current) {
         clearTimeout(clickTimeoutRef.current);
       }
-      markersRef.current.forEach(marker => marker.setMap(null));
+      Object.values(markerData).forEach(marker => marker.setMap(null));
+      setMarkerData({});
       markersRef.current = [];
     };
   }, []);

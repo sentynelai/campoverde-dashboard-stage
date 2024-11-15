@@ -1,42 +1,8 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Building2, Package, Share2 } from 'lucide-react';
 import { useStoreData } from '../hooks/useStoreData';
 import { useProductKPIs } from '../hooks/useProductKPIs';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const TrendChart: React.FC<{ data: { reach: number; goal: number }[] }> = ({ data }) => {
-  if (!data || data.length === 0) return null;
-  
-  const maxValue = Math.max(...data.map(d => Math.max(d.reach, d.goal)));
-  const points = data.map((d, i) => ({
-    x: (i / (data.length - 1)) * 100,
-    y: 100 - (d.reach / maxValue) * 100,
-    goalY: 100 - (d.goal / maxValue) * 100
-  }));
-
-  const reachLine = points.map(p => `${p.x},${p.y}`).join(' ');
-  const goalLine = points.map(p => `${p.x},${p.goalY}`).join(' ');
-
-  return (
-    <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-      <polyline
-        points={goalLine}
-        fill="none"
-        stroke="#666"
-        strokeWidth="1"
-        strokeDasharray="2,2"
-        vectorEffect="non-scaling-stroke"
-      />
-      <polyline
-        points={reachLine}
-        fill="none"
-        stroke="#00FF9C"
-        strokeWidth="2"
-        vectorEffect="non-scaling-stroke"
-      />
-    </svg>
-  );
-};
 
 export const SocialFooter: React.FC = () => {
   const { stores } = useStoreData();
@@ -44,14 +10,6 @@ export const SocialFooter: React.FC = () => {
   
   const totalLocations = stores.length;
   const totalProducts = products.length;
-  
-  const audienceData = useMemo(() => 
-    Array.from({ length: 12 }, (_, i) => ({
-      month: i + 1,
-      reach: Math.floor(Math.random() * 50000 + 150000),
-      goal: 200000
-    }))
-  , []);
 
   const metrics = [
     { 
@@ -69,7 +27,7 @@ export const SocialFooter: React.FC = () => {
     {
       icon: Share2,
       label: 'Audience Reach',
-      value: `${((audienceData[audienceData.length - 1]?.reach || 0) / (audienceData[audienceData.length - 1]?.goal || 1) * 100).toFixed(1)}%`,
+      value: '92.5%',
       color: '#00FF9C'
     }
   ];
@@ -103,10 +61,6 @@ export const SocialFooter: React.FC = () => {
               </div>
             </motion.div>
           ))}
-        </div>
-
-        <div className="w-96 h-12">
-          <TrendChart data={audienceData} />
         </div>
       </div>
     </div>

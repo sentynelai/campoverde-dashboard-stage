@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Radio, TrendingUp, ArrowRight, X } from 'lucide-react';
+import { Store, DollarSign, Users, TrendingUp, ArrowRight, X } from 'lucide-react';
 import { useStoreData } from '../hooks/useStoreData';
 import { useStoreSelection } from '../hooks/useStoreSelection';
 import { motion } from 'framer-motion';
@@ -22,13 +22,16 @@ export const AudienceMetrics: React.FC = () => {
       initial={{ opacity: 0, x: -100 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -100 }}
-      className="fixed left-4 top-24 w-64 bg-dark-950/90 backdrop-blur-lg rounded-xl p-4 border border-dark-800/50"
+      className="fixed left-4 top-24 w-[calc(100%-2rem)] md:w-96 bg-dark-950/90 backdrop-blur-lg rounded-xl border border-dark-800/50 p-4"
     >
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-[#00FF9C]">Store #{selectedStore.id}</h3>
+      <div className="flex items-center justify-between mb-4 sticky top-0 bg-dark-950/90 py-2">
+        <div className="flex items-center gap-2">
+          <Store className="w-5 h-5 text-[#00FF9C]" />
+          <h2 className="text-lg font-semibold">Store #{selectedStore.id}</h2>
+        </div>
         <button
           onClick={() => setSelectedStore(null)}
-          className="p-1 hover:bg-dark-800/50 rounded-lg transition-colors"
+          className="p-1.5 hover:bg-dark-800/50 rounded-lg transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
@@ -39,13 +42,13 @@ export const AudienceMetrics: React.FC = () => {
           { 
             label: 'Sales', 
             value: `$${(metrics.sales / 1000000).toFixed(1)}M`, 
-            icon: Users, 
+            icon: DollarSign, 
             color: '[#00FF9C]' 
           },
           { 
             label: 'Customers', 
             value: `${(metrics.customers / 1000).toFixed(1)}K`, 
-            icon: Radio, 
+            icon: Users, 
             color: 'blue-500' 
           },
           { 
@@ -66,13 +69,13 @@ export const AudienceMetrics: React.FC = () => {
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: index * 0.1 }}
-            className="flex items-center justify-between bg-dark-800/30 rounded-lg p-2"
+            className="flex items-center justify-between bg-dark-800/30 rounded-lg p-3"
           >
             <div className="flex items-center gap-2">
-              <div className={`p-1.5 rounded-lg bg-${item.color}/20`}>
-                <item.icon className={`w-3.5 h-3.5 text-${item.color}`} />
+              <div className={`p-2 rounded-lg bg-${item.color}/20`}>
+                <item.icon className={`w-4 h-4 text-${item.color}`} />
               </div>
-              <span className="text-xs">{item.label}</span>
+              <span className="text-dark-400 text-sm">{item.label}</span>
             </div>
             <span className={`text-sm font-medium ${item.label === 'Growth' ? `text-${item.color}` : ''}`}>
               {item.value}

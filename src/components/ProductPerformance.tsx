@@ -21,7 +21,7 @@ export const ProductPerformance: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
-        className="fixed md:left-72 left-4 top-[280px] md:top-24 w-[calc(100%-2rem)] md:w-96 bg-dark-950/90 backdrop-blur-lg rounded-xl border border-dark-800/50 p-4 max-h-[calc(100vh-200px)] overflow-y-auto"
+        className="fixed md:left-[420px] left-4 top-24 w-[calc(100%-2rem)] md:w-96 bg-dark-950/90 backdrop-blur-lg rounded-xl border border-dark-800/50 p-4 max-h-[calc(100vh-200px)] overflow-y-auto"
       >
         <div className="flex items-center gap-2 mb-4 sticky top-0 bg-dark-950/90 py-2">
           <DollarSign className="w-5 h-5 text-[#00FF9C]" />
