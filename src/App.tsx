@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Header } from './components/Header';
 import { Map } from './components/Map';
@@ -7,13 +7,21 @@ import { SocialFooter } from './components/SocialFooter';
 import { LoadingScreen } from './components/LoadingScreen';
 import { ChatAssistant } from './components/ChatAssistant';
 import { ProductPerformance } from './components/ProductPerformance';
+import { AudienceKPIs } from './components/AudienceKPIs';
 import { AnimatePresence } from 'framer-motion';
 import { useStoreSelection } from './hooks/useStoreSelection';
 import { useStoreData } from './hooks/useStoreData';
+import { LoginPage } from './components/LoginPage';
+import { LoadingOverlay } from './components/LoadingOverlay';
 
 function App() {
   const { isLoading, isError } = useStoreData();
-  const { selectedStore } = useStoreSelection();
+  const { selectedStore, isLoadingStore } = useStoreSelection();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={() => setIsAuthenticated(true)} />;
+  }
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -41,17 +49,19 @@ function App() {
           <Map />
         </div>
 
-        {/* Audience Metrics - Only show when store is selected */}
+        {/* Loading Overlay */}
         <AnimatePresence>
-          {selectedStore && (
-            <AudienceMetrics key={`metrics-${selectedStore.id}`} />
-          )}
+          {isLoadingStore && <LoadingOverlay />}
         </AnimatePresence>
 
-        {/* Product Performance */}
+        {/* Store Information */}
         <AnimatePresence>
           {selectedStore && (
-            <ProductPerformance key={`products-${selectedStore.id}`} />
+            <>
+              <AudienceMetrics key={`metrics-${selectedStore.id}`} />
+              <ProductPerformance key={`products-${selectedStore.id}`} />
+              <AudienceKPIs key={`audience-${selectedStore.id}`} />
+            </>
           )}
         </AnimatePresence>
 

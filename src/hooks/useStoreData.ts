@@ -2,11 +2,14 @@ import useSWR from 'swr';
 import { fetchStoreData } from '../lib/api';
 import type { StoreData } from '../types';
 import { atom, useAtom } from 'jotai';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 const lastUpdateAtom = atom<Date>(new Date());
 const isRefreshingAtom = atom<boolean>(false);
 export const errorMessageAtom = atom<string | null>(null);
+
+const CACHE_KEY = 'store-data';
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export function useStoreData() {
   const [lastUpdate, setLastUpdate] = useAtom(lastUpdateAtom);
@@ -15,25 +18,27 @@ export function useStoreData() {
   const [showErrorModal, setShowErrorModal] = useState(false);
 
   const { data, error, isLoading, mutate } = useSWR<{ data: StoreData[]; error?: string }>(
-    'store-data',
+    CACHE_KEY,
     fetchStoreData,
     {
-      refreshInterval: 300000, // 5 minutes
+      refreshInterval: CACHE_DURATION,
       revalidateOnFocus: false,
       shouldRetryOnError: true,
       errorRetryCount: 3,
       errorRetryInterval: 5000,
       dedupingInterval: 60000,
-      fallbackData: { data: [] }
+      fallbackData: { data: [] },
+      suspense: false
     }
   );
+
+  const stores = useMemo(() => data?.data || [], [data]);
 
   const refreshData = useCallback(async () => {
     try {
       setIsRefreshing(true);
       setErrorMessage(null);
       
-      // Force revalidation with no cache
       const result = await mutate(undefined, { revalidate: true });
       
       if (result?.error) {
@@ -51,8 +56,6 @@ export function useStoreData() {
       setIsRefreshing(false);
     }
   }, [mutate, setIsRefreshing, setErrorMessage, setLastUpdate]);
-
-  const stores = data?.data || [];
 
   return {
     stores,
