@@ -4,9 +4,11 @@ import { useStoreData } from '../hooks/useStoreData';
 import { MapError } from './MapError';
 import { loadGoogleMaps } from '../lib/maps';
 import { MAPS_CONFIG } from '../lib/maps';
+import type { StoreData } from '../types';
 
 const BATCH_SIZE = 500;
 const BATCH_DELAY = 100; // ms between batches
+const MIN_ZOOM_FOR_MARKERS = 6; // Minimum zoom level to show markers
 
 export const Map: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -19,18 +21,21 @@ export const Map: React.FC = () => {
   const [visibleMarkers, setVisibleMarkers] = useState<Set<number>>(new Set());
   const batchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [currentZoom, setCurrentZoom] = useState<number>(MAPS_CONFIG.defaultZoom);
 
-  // Memoize marker creation to avoid recreating markers unnecessarily
-  const createMarker = useMemo(() => (store: any, map: google.maps.Map) => {
-    // Check if marker already exists
-    if (markerData[store.id]) {
-      const existingMarker = markerData[store.id];
+  const createMarker = useMemo(() => (store: StoreData, map: google.maps.Map) => {
+    if (markerData[store.index]) {
+      const existingMarker = markerData[store.index];
       existingMarker.setMap(map);
       return existingMarker;
     }
 
-    const isEastRegion = store.region === 'East';
-    const isSelected = selectedStore?.id === store.id;
+    const isEastRegion = store.state === 'FL' || store.state === 'GA' || store.state === 'SC' || 
+                        store.state === 'NC' || store.state === 'VA' || store.state === 'MD' || 
+                        store.state === 'DE' || store.state === 'NJ' || store.state === 'NY' || 
+                        store.state === 'CT' || store.state === 'RI' || store.state === 'MA' || 
+                        store.state === 'NH' || store.state === 'VT' || store.state === 'ME';
+    const isSelected = selectedStore?.index === store.index;
 
     const marker = new google.maps.Marker({
       position: { lat: store.latitude, lng: store.longitude },
@@ -59,7 +64,7 @@ export const Map: React.FC = () => {
     });
 
     marker.addListener('mouseout', () => {
-      if (selectedStore?.id !== store.id) {
+      if (selectedStore?.index !== store.index) {
         marker.setIcon({
           ...marker.getIcon(),
           fillOpacity: 0.4,
@@ -77,12 +82,10 @@ export const Map: React.FC = () => {
       clickTimeoutRef.current = setTimeout(async () => {
         setSelectedStore(store);
         map.panTo({ lat: store.latitude, lng: store.longitude });
-        map.setZoom(6);
       }, 100);
     });
 
-    // Store marker reference
-    setMarkerData(prev => ({ ...prev, [store.id]: marker }));
+    setMarkerData(prev => ({ ...prev, [store.index]: marker }));
     return marker;
   }, [selectedStore, setSelectedStore, markerData]);
 
@@ -113,14 +116,15 @@ export const Map: React.FC = () => {
     if (!bounds) return;
 
     const zoom = mapInstanceRef.current.getZoom();
+    setCurrentZoom(zoom || MAPS_CONFIG.defaultZoom);
     const newVisibleMarkers = new Set<number>();
     
-    if (zoom && zoom > 4) {
+    if (zoom && zoom >= MIN_ZOOM_FOR_MARKERS) {
       const visibleStores = stores.filter(store => {
         const latLng = new google.maps.LatLng(store.latitude, store.longitude);
         const isVisible = bounds.contains(latLng);
         if (isVisible) {
-          newVisibleMarkers.add(store.id);
+          newVisibleMarkers.add(store.index);
         }
         return isVisible;
       });
@@ -210,17 +214,18 @@ export const Map: React.FC = () => {
     }
   }, [stores, selectedStore]);
 
-  // Reset map view when store is deselected
-  useEffect(() => {
-    if (!selectedStore && mapInstanceRef.current) {
-      mapInstanceRef.current.panTo(MAPS_CONFIG.defaultCenter);
-      mapInstanceRef.current.setZoom(MAPS_CONFIG.defaultZoom);
-    }
-  }, [selectedStore]);
-
   if (error) {
     return <MapError message={error} />;
   }
 
-  return <div ref={mapRef} className="w-full h-full opacity-90" />;
+  return (
+    <>
+      <div ref={mapRef} className="w-full h-full opacity-90" />
+      {currentZoom < MIN_ZOOM_FOR_MARKERS && (
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-dark-950/90 backdrop-blur-sm px-6 py-3 rounded-lg border border-dark-800/50 text-sm">
+          Zoom in to load map markers
+        </div>
+      )}
+    </>
+  );
 };

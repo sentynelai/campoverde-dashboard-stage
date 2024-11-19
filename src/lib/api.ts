@@ -13,6 +13,10 @@ interface APIResponse {
     region: string;
     trend: number;
     digital_audience: number;
+    index: number;
+    reviews: number;
+    positive: number;
+    negative: number;
   }>;
   kpis: Array<{
     id: string;
@@ -81,15 +85,19 @@ export async function fetchStoreData(): Promise<{ data: StoreData[]; error?: str
     const stores = data.locations
       .filter(location => validateCoordinates(location.latitude, location.longitude))
       .map(location => ({
-        id: location.id,
+        id: location.index,
         name: location.name || `Store ${location.id}`,
         latitude: location.latitude,
         longitude: location.longitude,
         sales: location.total_sales || 0,
-        customers: location.customers || 0,
+        customers: location.poblacion_10km || 0,
         region: location.region || 'Unknown',
         trend: location.trend || 0,
-        digitalAudience: location.digital_audience || 0
+        digitalAudience: location.digital_audience || 0,
+        index: location.index,
+        reviews: location.reviews,
+        positive: location.positive,
+        negative: location.negative
       }));
 
     const products = (data.kpis || []).map(kpi => ({
